@@ -4,4 +4,7 @@ clean:
 test:
 	./run-tests.sh
 
+upload:	clean
+	python setup.py sdist upload
+
 .PHONY:	clean test
