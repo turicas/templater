@@ -14,3 +14,4 @@ for text in texts_to_learn:
 print 'Template created:', template._template
 print 'Parsing text "%s"...' % text_to_parse
 print '  Result:', template.parse(text_to_parse)
+print 'Filling the blanks:', template.join(['', 'yellow', 'blue', ''])

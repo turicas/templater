@@ -24,6 +24,10 @@ Example
     >>> print 'Parsing last string:', template.parse(text_to_parse)
     Parsing last string: ['', 'white', 'black', '']
 
+    >>> print 'Filling the blanks:', template.join(['', 'yellow', 'blue', ''])
+    Filling the blanks: <b> yellow and blue </b>
+
+
 License
 -------
 
