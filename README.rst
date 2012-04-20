@@ -2,26 +2,40 @@ Templater
 =========
 
 Given some strings, this library extracts templates from that (with the method
-`learn`). Then, you can parse other strings and extract only the "movable
-parts" of them based on the template created (with method `parse`). You can
+``learn``). Then, you can parse other strings and extract only the "movable
+parts" of them based on the template created (with method ``parse``). You can
 also pass these "movable parts" to fill the template and have a new string with
-the same structure as others, but with data (with method `join`).
+the same structure as others, but with data (with method ``join``).
 
 And you have flexibility:
 
-- If you don't want/need to `Templater` create the template for you, you can
-pass a pre-processed template (as a list with the tokens or as a string with
-markers).
+- If you don't want/need to ``Templater`` create the template for you, you can
+  pass a pre-processed template (as a list with the tokens or as a string with
+  markers).
 - You can split the learning and parsing process, since the learning process
   generally is executed one time and takes a lot of time compared to parsing
-  process. To turn this process handy, ``Templater`` has the methods ``save`
+  process. To turn this process handy, `T`emplater`` has the methods ``save``
   and ``load``, so you can learn and save a template definition for later load
   and parse how many times you want (you can also load, learn more and save).
+
+
+Installation
+------------
+
+`templater is available at PyPI <http://pypi.python.org/pypi/templater>`_, so
+installing it is as simple as executing::
+
+    pip install templater
+
+Or you can download the latest version, extract and run::
+
+    python setup.py build install
+
 
 Examples
 --------
 
-All you need to know is below (and in the `examples` directory):
+All you need to know is below (and in the ``examples`` directory)::
 
     >>> from templater import Templater
     >>> texts_to_learn = ['<b> spam and eggs </b>', '<b> ham and spam </b>',
@@ -56,7 +70,18 @@ All you need to know is below (and in the `examples` directory):
     ['', 'Romeo', 'Juliet', '']
 
 
+Author
+------
+
+This software is developed by
+`Álvaro Justen aka Turicas <https://github.com/turicas>`_.
+
+Many thanks to `Adrian Holovaty <http://www.holovaty.com/>`_ - he created
+`templatemaker <http://templatemaker.googlecode.com>`_, the project which
+``templater`` was inspired in/forked from.
+
+
 License
 -------
 
-[GPL version 2](http://www.gnu.org/licenses/gpl-2.0.html)
+`GPL version 2 <http://www.gnu.org/licenses/gpl-2.0.html>`_
