@@ -5,7 +5,7 @@ from distutils.core import setup, Extension
 
 
 setup(name='templater',
-      version='0.1.1d',
+      version='0.2.0',
       description=('Extract template (a pattern) from strings and parse other'
                    'strings with this pattern.'),
       long_description=open('README.rst').read(),
