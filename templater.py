@@ -39,12 +39,25 @@ class Templater(object):
         return ''.join(text)
 
     def save(self, filename):
+        """Save the template to file ``filename`` so you can re-use it later.
+
+        This method uses cPickle to serialize internal template model, so you
+        don't need to pass through the learn process everytime you need to
+        parse data. It's worth using this method since learning process
+        generally cost a lot of time compared to parsing.
+        """
         fp = open(filename, 'w')
         pickle_dump(self._template, fp)
         fp.close()
 
     @staticmethod
     def load(filename):
+        """Load a template from ``filename``, return ``Templater`` object.
+
+        This method must be used in pair with ``Templater.save`` - it loads
+        the template definition from a file using cPickle, creates a
+        ``Templater`` object with the definition and returns it.
+        """
         fp = open(filename)
         processed_template = pickle_load(fp)
         fp.close()

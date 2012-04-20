@@ -7,9 +7,16 @@ parts" of them based on the template created (with method `parse`). You can
 also pass these "movable parts" to fill the template and have a new string with
 the same structure as others, but with data (with method `join`).
 
-And you have flexibility: if you don't want/need to `Templater` create the
-template for you, you can pass a pre-processed template (as a list with the
-tokens or as a string with markers).
+And you have flexibility:
+
+- If you don't want/need to `Templater` create the template for you, you can
+pass a pre-processed template (as a list with the tokens or as a string with
+markers).
+- You can split the learning and parsing process, since the learning process
+  generally is executed one time and takes a lot of time compared to parsing
+  process. To turn this process handy, ``Templater`` has the methods ``save`
+  and ``load``, so you can learn and save a template definition for later load
+  and parse how many times you want (you can also load, learn more and save).
 
 Examples
 --------
@@ -23,6 +30,7 @@ All you need to know is below (and in the `examples` directory):
     >>> template = Templater()
     >>> for text in texts_to_learn:
     ...    template.learn(text)
+    ...
 
     >>> print 'Template created:', template._template
     Template created: [None, '<b> ', None, ' and ', None, ' </b>', None]
@@ -40,6 +48,12 @@ All you need to know is below (and in the `examples` directory):
     >>> t3 = Templater(template='language=#,cool=#', marker='#')
     >>> print t3.join(['', 'Python', 'YES', ''])
     language=Python,cool=YES
+
+    >>> template.save('my-first-template.tpl')
+    >>> # and some time later...
+    >>> loaded_template = Templater.load('my-first-template.tpl')
+    >>> print loaded_template.parse('<b> Romeo and Juliet </b>')
+    ['', 'Romeo', 'Juliet', '']
 
 
 License
