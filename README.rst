@@ -14,9 +14,10 @@ And you have flexibility:
   markers).
 - You can split the learning and parsing process, since the learning process
   generally is executed one time and takes a lot of time compared to parsing
-  process. To turn this process handy, `T`emplater`` has the methods ``save``
-  and ``load``, so you can learn and save a template definition for later load
-  and parse how many times you want (you can also load, learn more and save).
+  process. To turn this process handy, ``Templater`` has the methods ``dump``,
+  ``save``, ``load`` and ``open``, so you can learn and save a template
+  definition and later load and parse how many times you want (you can also
+  load, learn more and save).
 
 
 Installation
@@ -68,13 +69,20 @@ list for you::
     >>> print t3.join(['', 'Python', 'YES', ''])
     language=Python,cool=YES
 
-Saving and loading templates is easy::
+Saving and opening templates is easy::
 
-    >>> template.save('my-first-template.tpl')
+    >>> template.save('my-first-template.html', marker='|||')
     >>> # and some time later...
-    >>> loaded_template = Templater.load('my-first-template.tpl')
+    >>> loaded_template = Templater.open('my-first-template.html', marker='|||')
     >>> print loaded_template.parse('<b> Romeo and Juliet </b>')
     ['', 'Romeo', 'Juliet', '']
+
+The difference between ``save`` and ``dump`` is that ``save`` stores the
+template string, filling the blanks with a marker and ``dump`` saves the whole
+``Templater`` object with ``cPickle``. The pairs are:
+
+- ``save`` and ``open`` (raw template string filled with marker)
+- ``load`` and ``dump`` (whole object)
 
 And to not be much literal, you can adjust tolerance too::
 

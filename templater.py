@@ -9,10 +9,9 @@ class Templater(object):
     def __init__(self, template=None, marker='|||', tolerance=0):
         self._template = template
         self._tolerance = tolerance
+        self._marker = marker
         if type(template) in (str, unicode):
-            tokens = template.split(marker)
-            self._template = list(sum(zip([None] * len(tokens), tokens), ())) \
-                             + [None]
+            self._template = _create_template_from_string(template, marker)
 
     def learn(self, new_text):
         if self._template is None:
@@ -40,8 +39,8 @@ class Templater(object):
                 variable_index += 1
         return ''.join(text)
 
-    def save(self, filename):
-        """Save the template to file ``filename`` so you can re-use it later.
+    def dump(self, filename):
+        """Dump the template object to ``filename`` so you can re-use it later.
 
         This method uses cPickle to serialize internal template model, so you
         don't need to pass through the learn process everytime you need to
@@ -56,7 +55,7 @@ class Templater(object):
     def load(filename):
         """Load a template from ``filename``, return ``Templater`` object.
 
-        This method must be used in pair with ``Templater.save`` - it loads
+        This method must be used in pair with ``Templater.dump`` - it loads
         the template definition from a file using cPickle, creates a
         ``Templater`` object with the definition and returns it.
         """
@@ -64,6 +63,40 @@ class Templater(object):
         processed_template = pickle_load(fp)
         fp.close()
         return processed_template
+
+    def save(self, filename, marker=None):
+        """Save the template to ``filename`` using ``marker`` as marker.
+
+        This method looks like ``Templater.dump``, the difference is that it
+        does not save/pickle the entire ``Templater`` object - it uses
+        ``Templater.join`` to fill the blanks with ``marker`` and then save the
+        resulting string to ``filename``.
+        It should be used in pair with ``Templater.open``.
+        """
+        if marker is None:
+            marker = self._marker
+        blanks = [marker for x in self._template if x is None]
+        fp = open(filename, 'w')
+        fp.write(self.join(blanks))
+        fp.close()
+
+    @staticmethod
+    def open(filename, marker='|||'):
+        """Open ``filename``, split in ``marker``, return ``Templater`` object.
+
+        You should use this method in pair with ``Templater.save`` or if you
+        want to write the templates with your own hands. It works similar to
+        ``Templater.load``, except by the fact that ``load`` saves the entire
+        ``Templater`` object and ``open`` saves only the template string,
+        filling the blanks with ``marker``.
+        """
+        fp = open(filename)
+        contents = fp.read()
+        fp.close()
+        template = _create_template_from_string(contents, marker)
+        t = Templater(template=template, marker=marker)
+        return t
+
 
 def _parser(template, text):
     last_element_index = len(template) - 1
@@ -99,3 +132,7 @@ def _create_template(str_1, str_2, (start_1, end_1), (start_2, end_2),
                                 (start_1 + lcs_1_start + lcs_size, end_1),
                                 (start_2 + lcs_2_start + lcs_size, end_2),
                                 tolerance)
+
+def _create_template_from_string(text, marker):
+    tokens = [x for x in text.split(marker) if x != '']
+    return list(sum(zip([None] * len(tokens), tokens), ())) + [None]

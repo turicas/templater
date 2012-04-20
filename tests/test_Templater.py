@@ -58,7 +58,7 @@ def test_Templater_should_import_template_string_with_marks():
 def test_Templater_should_load_and_save_templates_from_and_to_files():
     processed_template = [None, '<b>', None, '</b><u>', None, '</u>', None]
     template = Templater(template=processed_template, tolerance=5)
-    template.save('my-template.tpl')
+    template.dump('my-template.tpl')
     t2 = Templater.load('my-template.tpl')
     unlink('my-template.tpl')
     result_1 = t2._template
@@ -74,4 +74,25 @@ def test_Templater_should_be_able_to_adjust_tolerance():
     t.learn('eggs and spam')
     expected = [None, ' and ', None]
     result = t._template
+    assert expected == result
+
+def test_Templater_save_should_save_template_as_a_raw_file_with_markers():
+    processed_template = [None, '<b>', None, '</b><u>', None, '</u>', None]
+    t = Templater(template=processed_template)
+    t.save('test.html', marker='|||')
+    fp = open('test.html')
+    result = fp.read()
+    fp.close()
+    unlink('test.html')
+    expected = '|||<b>|||</b><u>|||</u>|||'
+    assert expected == result
+
+def test_Templater_open_should_load_template_from_a_raw_file_with_markers():
+    fp = open('test.html', 'w')
+    fp.write('|||<b>|||</b><u>|||</u>|||')
+    fp.close()
+    t = Templater.open('test.html', marker='|||')
+    unlink('test.html')
+    result = t._template
+    expected = [None, '<b>', None, '</b><u>', None, '</u>', None]
     assert expected == result
