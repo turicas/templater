@@ -41,3 +41,9 @@ def test_join_with_less_parameters_than_variables_should_raise_ValueError():
         pass
     else:
         assert 'ValueError not raised!' == False
+
+def test_Templater_should_import_pre_processed_template_if_user_want():
+    pre_processed = [None, '<u>', None, '</u>', None]
+    template = Templater(template=pre_processed)
+    assert template._template == pre_processed
+    assert template.join(['', 'python', '']) == '<u>python</u>'

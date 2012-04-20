@@ -5,8 +5,8 @@ from _templater import longest_match as lcs
 
 
 class Templater(object):
-    def __init__(self):
-        self._template = None
+    def __init__(self, template=None):
+        self._template = template
 
     def learn(self, new_text):
         if self._template is None:
