@@ -5,8 +5,12 @@ from _templater import longest_match as lcs
 
 
 class Templater(object):
-    def __init__(self, template=None):
+    def __init__(self, template=None, marker='|||'):
         self._template = template
+        if type(template) in (str, unicode):
+            tokens = template.split(marker)
+            self._template = list(sum(zip([None] * len(tokens), tokens), ())) \
+                             + [None]
 
     def learn(self, new_text):
         if self._template is None:

@@ -47,3 +47,9 @@ def test_Templater_should_import_pre_processed_template_if_user_want():
     template = Templater(template=pre_processed)
     assert template._template == pre_processed
     assert template.join(['', 'python', '']) == '<u>python</u>'
+
+def test_Templater_should_import_template_string_with_marks():
+    template = Templater(template='<b>|||</b>', marker='|||')
+    result_template = template._template
+    assert result_template == [None, '<b>', None, '</b>', None]
+    assert template.join(['', 'spam eggs', '']) == '<b>spam eggs</b>'
