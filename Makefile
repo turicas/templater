@@ -1,10 +1,17 @@
 clean:
-	rm -rf *.pyc reg_settings* build/ MANIFEST dist/
+	rm -rf *.pyc **/*.pyc reg_settings* MANIFEST build/ dist/
 
-test:
+build:
+	python setup.py build
+
+install:
+	python setup.py install
+
+test:	clean
 	./run-tests.sh
+	make clean
 
 upload:	clean test
 	python setup.py sdist upload
 
-.PHONY:	clean test upload
+.PHONY:	clean build install test upload

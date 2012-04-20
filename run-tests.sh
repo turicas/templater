@@ -9,5 +9,6 @@ if [ -z "$VIRTUAL_ENV" ]; then
 fi
 
 clear
+make clean build install
 $VIRTUAL_ENV/bin/python setup.py build install
 $VIRTUAL_ENV/bin/python /usr/local/bin/nosetests -dv --with-yanc

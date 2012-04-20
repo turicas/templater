@@ -57,13 +57,16 @@ def test_Templater_should_import_template_string_with_marks():
 
 def test_Templater_should_load_and_save_templates_from_and_to_files():
     processed_template = [None, '<b>', None, '</b><u>', None, '</u>', None]
-    template = Templater(template=processed_template)
+    template = Templater(template=processed_template, tolerance=5)
     template.save('my-template.tpl')
     t2 = Templater.load('my-template.tpl')
-    result = t2._template
-    expected = processed_template
     unlink('my-template.tpl')
-    assert expected == result
+    result_1 = t2._template
+    expected_1 = processed_template
+    result_2 = t2._tolerance
+    expected_2 = 5
+    assert expected_1 == result_1
+    assert expected_2 == result_2
 
 def test_Templater_should_be_able_to_adjust_tolerance():
     t = Templater(tolerance=1)

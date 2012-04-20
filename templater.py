@@ -49,7 +49,7 @@ class Templater(object):
         generally cost a lot of time compared to parsing.
         """
         fp = open(filename, 'w')
-        pickle_dump(self._template, fp)
+        pickle_dump(self, fp)
         fp.close()
 
     @staticmethod
@@ -63,7 +63,7 @@ class Templater(object):
         fp = open(filename)
         processed_template = pickle_load(fp)
         fp.close()
-        return Templater(template=processed_template)
+        return processed_template
 
 def _parser(template, text):
     last_element_index = len(template) - 1
