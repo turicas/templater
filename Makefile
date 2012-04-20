@@ -1,5 +1,6 @@
 clean:
-	rm -rf *.pyc **/*.pyc reg_settings* MANIFEST build/ dist/
+	rm -rf *.pyc **/*.pyc reg_settings* .coverage MANIFEST build/ dist/ \
+	       _templater.so readme.html
 
 build:
 	python setup.py build
@@ -18,4 +19,7 @@ upload:	clean test
 	python setup.py sdist upload
 	make clean
 
-.PHONY:	clean build install test upload sdist
+readme:
+	rst2html README.rst > readme.html
+
+.PHONY:	clean build install test sdist upload readme

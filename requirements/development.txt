@@ -2,3 +2,4 @@ virtualenv
 virtualenvwrapper
 nose
 yanc
+coverage

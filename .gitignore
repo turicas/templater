@@ -3,3 +3,5 @@
 *.pyc
 build/
 reg_settings*
+_templater.so
+.coverage
