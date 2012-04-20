@@ -11,7 +11,11 @@ test:	clean
 	./run-tests.sh
 	make clean
 
+sdist:	clean test
+	python setup.py sdist
+
 upload:	clean test
 	python setup.py sdist upload
+	make clean
 
-.PHONY:	clean build install test upload
+.PHONY:	clean build install test upload sdist
