@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+from cPickle import dump as pickle_dump, load as pickle_load
 from _templater import longest_match as lcs
 
 
@@ -36,6 +37,18 @@ class Templater(object):
                 text[index] = elements[variable_index]
                 variable_index += 1
         return ''.join(text)
+
+    def save(self, filename):
+        fp = open(filename, 'w')
+        pickle_dump(self._template, fp)
+        fp.close()
+
+    @staticmethod
+    def load(filename):
+        fp = open(filename)
+        processed_template = pickle_load(fp)
+        fp.close()
+        return Templater(template=processed_template)
 
 def _parser(template, text):
     last_element_index = len(template) - 1

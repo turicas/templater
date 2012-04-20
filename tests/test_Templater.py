@@ -53,3 +53,12 @@ def test_Templater_should_import_template_string_with_marks():
     result_template = template._template
     assert result_template == [None, '<b>', None, '</b>', None]
     assert template.join(['', 'spam eggs', '']) == '<b>spam eggs</b>'
+
+def test_Templater_should_load_and_save_templates_from_and_to_files():
+    processed_template = [None, '<b>', None, '</b><u>', None, '</u>', None]
+    template = Templater(template=processed_template)
+    template.save('my-template.tpl')
+    t2 = Templater.load('my-template.tpl')
+    result = t2._template
+    expected = processed_template
+    assert expected == result
