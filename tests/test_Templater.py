@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+from os import unlink
 from templater import Templater
 
 
@@ -61,4 +62,13 @@ def test_Templater_should_load_and_save_templates_from_and_to_files():
     t2 = Templater.load('my-template.tpl')
     result = t2._template
     expected = processed_template
+    unlink('my-template.tpl')
+    assert expected == result
+
+def test_Templater_should_be_able_to_adjust_tolerance():
+    t = Templater(tolerance=1)
+    t.learn('git and pyth')
+    t.learn('eggs and spam')
+    expected = [None, ' and ', None]
+    result = t._template
     assert expected == result

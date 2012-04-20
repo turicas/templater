@@ -6,9 +6,9 @@ from _templater import longest_match as lcs
 
 
 class Templater(object):
-    def __init__(self, template=None, marker='|||'):
+    def __init__(self, template=None, marker='|||', tolerance=0):
         self._template = template
-        self._tolerance = 0
+        self._tolerance = tolerance
         if type(template) in (str, unicode):
             tokens = template.split(marker)
             self._template = list(sum(zip([None] * len(tokens), tokens), ())) \
