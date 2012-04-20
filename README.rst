@@ -55,19 +55,41 @@ All you need to know is below (and in the ``examples`` directory)::
     >>> print 'Filling the blanks:', template.join(['', 'yellow', 'blue', ''])
     Filling the blanks: <b> yellow and blue </b>
 
+You can pass pre-processed templates as a list (variable places = ``None``)::
+
     >>> t2 = Templater(template=[None, 'Music: ', None, ', Band: ', None])
     >>> print t2.join(['', 'Welcome to the Jungle', 'Guns and Roses'])
     Music: Welcome to the Jungle, Band: Guns and Roses
 
+...or you can pass a string with the marker, then ``Templater`` will create the
+list for you::
+
     >>> t3 = Templater(template='language=#,cool=#', marker='#')
     >>> print t3.join(['', 'Python', 'YES', ''])
     language=Python,cool=YES
+
+Saving and loading templates is easy::
 
     >>> template.save('my-first-template.tpl')
     >>> # and some time later...
     >>> loaded_template = Templater.load('my-first-template.tpl')
     >>> print loaded_template.parse('<b> Romeo and Juliet </b>')
     ['', 'Romeo', 'Juliet', '']
+
+And to not be much literal, you can adjust tolerance too::
+
+    >>> str_1 = 'my favorite color is blue'
+    >>> str_2 = 'my favorite color is violet'
+    >>> t = Templater() # default tolerance (0)
+    >>> t.learn(str_1)
+    >>> t.learn(str_2)
+    >>> print t._template
+    [None, 'my favorite color is ', None, 'l', None, 'e', None]
+    >>> t = Templater(tolerance=1)
+    >>> t.learn(str_1)
+    >>> t.learn(str_2)
+    >>> print t._template
+    [None, 'my favorite color is ', None]
 
 
 Author
