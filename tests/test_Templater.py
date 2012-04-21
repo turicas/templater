@@ -113,3 +113,42 @@ def test_named_markers_should_work():
     expected_2 = {'first': '', 'second': 'hello', 'third': 'world',
                   'fourth': ''}
     assert expected_2 == result_2
+
+def test_should_not_have_named_marks_without_nothing_in_the_middle():
+    fp = open('test.html', 'w')
+    fp.write('{{first}}{{second}}<u>{{text}}</u>{{last}}')
+    fp.close()
+    regexp_marker = re_compile(r'{{([a-zA-Z0-9_-]*)}}')
+    try:
+        t = Templater.open('test.html', marker=regexp_marker,
+                           named_markers=True)
+    except ValueError:
+        pass
+    else:
+        assert "ValueError not raised!" == False
+
+def test_if_there_are_no_named_marker_in_the_start_of_template():
+    fp = open('test.html', 'w')
+    fp.write('<u>{{text}}</u>{{end}}')
+    fp.close()
+    regexp_marker = re_compile(r'{{([a-zA-Z0-9_-]*)}}')
+    try:
+        t = Templater.open('test.html', marker=regexp_marker,
+                           named_markers=True)
+    except ValueError:
+        pass
+    else:
+        assert "ValueError not raised!" == False
+
+def test_if_there_are_no_named_marker_in_the_end_of_template():
+    fp = open('test.html', 'w')
+    fp.write('{{start}}<u>{{text}}</u>')
+    fp.close()
+    regexp_marker = re_compile(r'{{([a-zA-Z0-9_-]*)}}')
+    try:
+        t = Templater.open('test.html', marker=regexp_marker,
+                           named_markers=True)
+    except ValueError:
+        pass
+    else:
+        assert "ValueError not raised!" == False

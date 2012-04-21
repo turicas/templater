@@ -18,7 +18,7 @@ class Templater(object):
         if self._template is None:
             text = new_text
         else:
-            text = '\0\0\0'.join([x for x in self._template if x is not None])
+            text = '\0\0\0'.join(filter(lambda x: x is not None, self._template))
         self._template = _create_template(new_text, text, (0, len(new_text)),
                                           (0, len(text)), self._tolerance)
 
@@ -154,5 +154,8 @@ def _create_template_from_string(text, marker, named_markers=False):
         tokens = [x for x in text.split(marker) if x != '']
     template = list(sum(zip([None] * len(tokens), tokens), ())) + [None]
     if named_markers:
+        if template.count(None) != len(headers):
+            raise ValueError("Template error! Verify if markers are separated"
+                             " at least by one character")
         return template, headers
     return template
