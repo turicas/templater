@@ -2,6 +2,7 @@
 # coding: utf-8
 
 from os import unlink
+from re import compile as re_compile
 from templater import Templater
 
 
@@ -96,3 +97,19 @@ def test_Templater_open_should_load_template_from_a_raw_file_with_markers():
     result = t._template
     expected = [None, '<b>', None, '</b><u>', None, '</u>', None]
     assert expected == result
+
+def test_named_markers_should_work():
+    fp = open('test.html', 'w')
+    fp.write('|||[first]<b>|||[second]</b><u>|||[third]</u>|||[fourth]')
+    fp.close()
+    t = Templater.open('test.html', marker=re_compile(r'\|\|\|\[([^\]]+)\]'),
+                       named_markers=True)
+    unlink('test.html')
+    result_1 = t._template
+    expected_1 = [None, '<b>', None, '</b><u>', None, '</u>', None]
+    assert result_1 == expected_1
+
+    result_2 = t.parse('<b>hello</b><u>world</u>')
+    expected_2 = {'first': '', 'second': 'hello', 'third': 'world',
+                  'fourth': ''}
+    assert expected_2 == result_2

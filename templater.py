@@ -10,6 +10,7 @@ class Templater(object):
         self._template = template
         self._tolerance = tolerance
         self._marker = marker
+        self._named_markers = False
         if type(template) in (str, unicode):
             self._template = _create_template_from_string(template, marker)
 
@@ -22,7 +23,11 @@ class Templater(object):
                                           (0, len(text)), self._tolerance)
 
     def parse(self, text):
-        return _parser(self._template, text)
+        result = _parser(self._template, text)
+        if self._named_markers:
+            return dict(zip(self._headers, result))
+        else:
+            return result
 
     def join(self, elements):
         elements_length = len(elements)
@@ -81,7 +86,7 @@ class Templater(object):
         fp.close()
 
     @staticmethod
-    def open(filename, marker='|||'):
+    def open(filename, marker='|||', named_markers=False):
         """Open ``filename``, split in ``marker``, return ``Templater`` object.
 
         You should use this method in pair with ``Templater.save`` or if you
@@ -93,8 +98,15 @@ class Templater(object):
         fp = open(filename)
         contents = fp.read()
         fp.close()
-        template = _create_template_from_string(contents, marker)
+        if not named_markers:
+            template = _create_template_from_string(contents, marker, False)
+            headers = None
+        else:
+            template, headers = _create_template_from_string(contents, marker,
+                                                             True)
         t = Templater(template=template, marker=marker)
+        t._headers = headers
+        t._named_markers = named_markers
         return t
 
 
@@ -123,16 +135,24 @@ def _create_template(str_1, str_2, (start_1, end_1), (start_2, end_2),
     if lcs_size <= tolerance:
         return [None]
     else:
+        common = str_1[start_1 + lcs_1_start:start_1 + lcs_1_start + lcs_size]
         return _create_template(str_1, str_2,
                                 (start_1, start_1 + lcs_1_start),
                                 (start_2, start_2 + lcs_2_start),
                                 tolerance) + \
-               [str_1[start_1 + lcs_1_start:start_1 + lcs_1_start + lcs_size]] + \
+               [common] + \
                _create_template(str_1, str_2,
                                 (start_1 + lcs_1_start + lcs_size, end_1),
                                 (start_2 + lcs_2_start + lcs_size, end_2),
                                 tolerance)
 
-def _create_template_from_string(text, marker):
-    tokens = [x for x in text.split(marker) if x != '']
-    return list(sum(zip([None] * len(tokens), tokens), ())) + [None]
+def _create_template_from_string(text, marker, named_markers=False):
+    if named_markers:
+        results = marker.split(text)
+        tokens, headers = [x for x in results[::2] if x], results[1::2]
+    else:
+        tokens = [x for x in text.split(marker) if x != '']
+    template = list(sum(zip([None] * len(tokens), tokens), ())) + [None]
+    if named_markers:
+        return template, headers
+    return template
