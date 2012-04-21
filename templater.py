@@ -99,15 +99,15 @@ class Templater(object):
 
 
 def _parser(template, text):
-    last_element_index = len(template) - 1
     result = []
     text_index = 0
+    last_element_index = len(template) - 1
     for index, element in enumerate(template):
         if element is None:
             if index != last_element_index:
                 new_index = text.index(template[index + 1], text_index)
             else:
-                new_index = last_element_index
+                new_index = None
             result.append(text[text_index:new_index])
             text_index = new_index
         else:
