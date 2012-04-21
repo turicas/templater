@@ -2,8 +2,11 @@
 # coding: utf-8
 
 from cPickle import dump as pickle_dump, load as pickle_load
+from re import compile as re_compile
 from _templater import longest_match as lcs
 
+
+type_regexp = type(re_compile(''))
 
 class Templater(object):
     def __init__(self, template=None, marker='|||', tolerance=0):
@@ -12,7 +15,8 @@ class Templater(object):
         self._marker = marker
         self._named_markers = False
         if type(template) in (str, unicode):
-            self._template = _create_template_from_string(template, marker)
+            self._template, self._named_markers, self._headers = \
+                    _create_template_from_string(template, marker)
 
     def learn(self, new_text):
         if self._template is None:
@@ -86,7 +90,7 @@ class Templater(object):
         fp.close()
 
     @staticmethod
-    def open(filename, marker='|||', named_markers=False):
+    def open(filename, marker='|||'):
         """Open ``filename``, split in ``marker``, return ``Templater`` object.
 
         You should use this method in pair with ``Templater.save`` or if you
@@ -98,16 +102,8 @@ class Templater(object):
         fp = open(filename)
         contents = fp.read()
         fp.close()
-        if not named_markers:
-            template = _create_template_from_string(contents, marker, False)
-            headers = None
-        else:
-            template, headers = _create_template_from_string(contents, marker,
-                                                             True)
-        t = Templater(template=template, marker=marker)
-        t._headers = headers
-        t._named_markers = named_markers
-        return t
+        template = Templater(template=contents, marker=marker)
+        return template
 
 
 def _parser(template, text):
@@ -146,7 +142,8 @@ def _create_template(str_1, str_2, (start_1, end_1), (start_2, end_2),
                                 (start_2 + lcs_2_start + lcs_size, end_2),
                                 tolerance)
 
-def _create_template_from_string(text, marker, named_markers=False):
+def _create_template_from_string(text, marker):
+    named_markers = type(marker) == type_regexp
     if named_markers:
         results = marker.split(text)
         tokens, headers = [x for x in results[::2] if x], results[1::2]
@@ -157,5 +154,5 @@ def _create_template_from_string(text, marker, named_markers=False):
         if template.count(None) != len(headers):
             raise ValueError("Template error! Verify if markers are separated"
                              " at least by one character")
-        return template, headers
-    return template
+        return template, True, headers
+    return template, False, None

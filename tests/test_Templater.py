@@ -5,6 +5,7 @@ from os import unlink
 from re import compile as re_compile
 from templater import Templater
 
+regexp_marker = re_compile(r'{{([a-zA-Z0-9_-]*)}}')
 
 def test_new_learn_text_trying_to_delete_some_variable():
     template = Templater()
@@ -88,6 +89,17 @@ def test_Templater_save_should_save_template_as_a_raw_file_with_markers():
     expected = '|||<b>|||</b><u>|||</u>|||'
     assert expected == result
 
+def test_Templater_should_accept_named_markers_in_init():
+    template = '{{start}}<b>{{middle}}</b>{{end}}'
+    t = Templater(template=template, marker=regexp_marker)
+    result_1 = t._template
+    expected_1 = [None, '<b>', None, '</b>', None]
+    assert expected_1 == result_1
+
+    result_2 = t._headers
+    expected_2 = ['start', 'middle', 'end']
+    assert expected_2 == result_2
+
 def test_Templater_open_should_load_template_from_a_raw_file_with_markers():
     fp = open('test.html', 'w')
     fp.write('|||<b>|||</b><u>|||</u>|||')
@@ -102,8 +114,7 @@ def test_named_markers_should_work():
     fp = open('test.html', 'w')
     fp.write('|||[first]<b>|||[second]</b><u>|||[third]</u>|||[fourth]')
     fp.close()
-    t = Templater.open('test.html', marker=re_compile(r'\|\|\|\[([^\]]+)\]'),
-                       named_markers=True)
+    t = Templater.open('test.html', marker=re_compile(r'\|\|\|\[([^\]]+)\]'))
     unlink('test.html')
     result_1 = t._template
     expected_1 = [None, '<b>', None, '</b><u>', None, '</u>', None]
@@ -118,10 +129,8 @@ def test_should_not_have_named_marks_without_nothing_in_the_middle():
     fp = open('test.html', 'w')
     fp.write('{{first}}{{second}}<u>{{text}}</u>{{last}}')
     fp.close()
-    regexp_marker = re_compile(r'{{([a-zA-Z0-9_-]*)}}')
     try:
-        t = Templater.open('test.html', marker=regexp_marker,
-                           named_markers=True)
+        t = Templater.open('test.html', marker=regexp_marker)
     except ValueError:
         pass
     else:
@@ -131,24 +140,22 @@ def test_if_there_are_no_named_marker_in_the_start_of_template():
     fp = open('test.html', 'w')
     fp.write('<u>{{text}}</u>{{end}}')
     fp.close()
-    regexp_marker = re_compile(r'{{([a-zA-Z0-9_-]*)}}')
     try:
-        t = Templater.open('test.html', marker=regexp_marker,
-                           named_markers=True)
+        t = Templater.open('test.html', marker=regexp_marker)
     except ValueError:
-        pass
+        unlink('test.html')
     else:
+        unlink('test.html')
         assert "ValueError not raised!" == False
 
 def test_if_there_are_no_named_marker_in_the_end_of_template():
     fp = open('test.html', 'w')
     fp.write('{{start}}<u>{{text}}</u>')
     fp.close()
-    regexp_marker = re_compile(r'{{([a-zA-Z0-9_-]*)}}')
     try:
-        t = Templater.open('test.html', marker=regexp_marker,
-                           named_markers=True)
+        t = Templater.open('test.html', marker=regexp_marker)
     except ValueError:
-        pass
+        unlink('test.html')
     else:
+        unlink('test.html')
         assert "ValueError not raised!" == False
