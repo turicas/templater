@@ -3,7 +3,7 @@
 
 from os import unlink
 from re import compile as re_compile
-from templater import Templater
+from templater import Templater, MARKER, NAMED_MARKER
 
 regexp_marker = re_compile(r'{{([a-zA-Z0-9_-]*)}}')
 
@@ -148,7 +148,7 @@ def test_if_there_are_no_named_marker_in_the_start_of_template():
         unlink('test.html')
         assert "ValueError not raised!" == False
 
-def test_if_there_are_no_named_marker_in_the_end_of_template():
+def test_raise_ValueError_if_there_is_no_named_marker_in_the_end_of_template():
     fp = open('test.html', 'w')
     fp.write('{{start}}<u>{{text}}</u>')
     fp.close()
@@ -159,3 +159,84 @@ def test_if_there_are_no_named_marker_in_the_end_of_template():
     else:
         unlink('test.html')
         assert "ValueError not raised!" == False
+
+# SAVE: marker + headers cases:
+# marker | self._named_markers | result
+#     NO |                  NO | self._marker    / ignore headers
+#     NO |                 YES | NAMED_MARKER    / headers or self._headers
+#    YES |                  NO | marker          / ignore headers
+#    YES |                 YES | marker.format() / headers or self._headers
+
+def test_save_should_use_self_marker_if_no_marker_supplied():
+    t = Templater(template='+<u>+</u>+', marker='+')
+    t.save('test.html')
+    fp = open('test.html')
+    result = fp.read()
+    fp.close()
+    unlink('test.html')
+    expected = '+<u>+</u>+'
+    assert expected == result
+
+def test_save_should_use_NAMED_MARKER_if_template_has_named_markers_and_no_marker_supplied():
+    t = Templater(template='{{one}}<u>{{two}}</u>{{three}}',
+                  marker=regexp_marker)
+    t.save('test.html')
+    fp = open('test.html')
+    result = fp.read()
+    fp.close()
+    unlink('test.html')
+    named_markers = [NAMED_MARKER.format(header) for header in t._headers]
+    expected = t.join(named_markers)
+    assert expected == result
+
+def test_save_should_use_marker_if_supplied_and_template_hasnt_named_markers():
+    t = Templater(template='+<u>+</u>+', marker='+')
+    t.save('test.html', marker='%%')
+    fp = open('test.html')
+    result = fp.read()
+    fp.close()
+    unlink('test.html')
+    expected = '%%<u>%%</u>%%'
+    assert expected == result
+
+def test_save_should_use_python_format_if_marker_is_supplied_and_template_has_named_markers():
+    t = Templater(template='{{start}}<u>{{text}}</u>{{end}}',
+                  marker=regexp_marker)
+    t.save('test.html', marker='[--{}--]')
+    fp = open('test.html')
+    result = fp.read()
+    fp.close()
+    unlink('test.html')
+    expected = '[--start--]<u>[--text--]</u>[--end--]'
+    assert expected == result
+
+def test_save_should_use_headers_instead_of_self_headers_if_supplied():
+    t = Templater(template='{{one}}<u>{{two}}</u>{{three}}',
+                  marker=regexp_marker)
+    t.save('test.html', headers=list('abc'))
+    fp = open('test.html')
+    result_1 = fp.read()
+    fp.close()
+    unlink('test.html')
+    named_markers = [NAMED_MARKER.format(header) for header in list('abc')]
+    expected_1 = t.join(named_markers)
+    assert expected_1 == result_1
+
+    t.save('test.html', marker='[--{}--]', headers=list('abc'))
+    fp = open('test.html')
+    result_2 = fp.read()
+    fp.close()
+    unlink('test.html')
+    expected_2 = '[--a--]<u>[--b--]</u>[--c--]'
+    assert expected_2 == result_2
+
+def test_passing_headers_with_different_size_from_self_headers_should_raise_AttributeError():
+    t = Templater(template='{{one}}<u>{{two}}</u>{{three}}',
+                  marker=regexp_marker)
+    try:
+        t.save('test.html', headers=list('abcde'))
+    except AttributeError:
+        pass
+    else:
+        unlink('test.html')
+        raise 'AttributeError not raised!'

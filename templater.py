@@ -7,12 +7,15 @@ from _templater import longest_match as lcs
 
 
 type_regexp = type(re_compile(''))
+MARKER = '|||'
+NAMED_MARKER = '{{{{{}}}}}' # '{{sample-var}}'
 
 class Templater(object):
-    def __init__(self, template=None, marker='|||', tolerance=0):
+    def __init__(self, template=None, marker=MARKER, tolerance=0):
         self._template = template
         self._tolerance = tolerance
         self._marker = marker
+        self._headers = None
         self._named_markers = False
         if type(template) in (str, unicode):
             self._template, self._named_markers, self._headers = \
@@ -37,7 +40,7 @@ class Templater(object):
         elements_length = len(elements)
         variables_length = self._template.count(None)
         if elements_length != variables_length:
-            error_msg = ("Wrong number of variables (passwd: {}, expected: "
+            error_msg = ("Wrong number of variables (passed: {}, expected: "
                          "{})".format(elements_length, variables_length))
             raise ValueError(error_msg)
         text = self._template[:]
@@ -73,7 +76,7 @@ class Templater(object):
         fp.close()
         return processed_template
 
-    def save(self, filename, marker=None):
+    def save(self, filename, marker=None, headers=None):
         """Save the template to ``filename`` using ``marker`` as marker.
 
         This method looks like ``Templater.dump``, the difference is that it
@@ -82,15 +85,26 @@ class Templater(object):
         resulting string to ``filename``.
         It should be used in pair with ``Templater.open``.
         """
-        if marker is None:
-            marker = self._marker
-        blanks = [marker for x in self._template if x is None]
+        if not self._named_markers:
+            if marker is None:
+                marker = self._marker
+            blanks = [marker] * self._template.count(None)
+        else:
+            if headers is not None and len(headers) != len(self._headers):
+                raise AttributeError('Incorrect number of headers (passed:'
+                                     ' {}, expected: {})'.format(
+                                     len(headers), len(self._headers)))
+            if marker is None:
+                marker = NAMED_MARKER
+            if headers is None:
+                headers = self._headers
+            blanks = [marker.format(header) for header in headers]
         fp = open(filename, 'w')
         fp.write(self.join(blanks))
         fp.close()
 
     @staticmethod
-    def open(filename, marker='|||'):
+    def open(filename, marker=MARKER):
         """Open ``filename``, split in ``marker``, return ``Templater`` object.
 
         You should use this method in pair with ``Templater.save`` or if you
