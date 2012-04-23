@@ -92,16 +92,17 @@ initializer or ``Templater.open``) make sure it **starts and ends** with a
 marker.
 
 
-And to not be much literal, you can adjust tolerance too::
+And to not be much literal, you can adjust ``min_block_size`` - it's the
+minimum number of characters permitted to create a new block in template::
 
     >>> str_1 = 'my favorite color is blue'
     >>> str_2 = 'my favorite color is violet'
-    >>> t = Templater() # default tolerance (0)
+    >>> t = Templater() # default min_block_size = 1
     >>> t.learn(str_1)
     >>> t.learn(str_2)
     >>> print t._template
     [None, 'my favorite color is ', None, 'l', None, 'e', None]
-    >>> t = Templater(tolerance=1)
+    >>> t = Templater(min_block_size=2)
     >>> t.learn(str_1)
     >>> t.learn(str_2)
     >>> print t._template

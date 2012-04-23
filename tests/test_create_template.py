@@ -95,15 +95,15 @@ def test_more_than_one_variable_with_different_sizes():
     expected = [None, '<b> ', None, ' </b><u> ', None, ' </u>', None]
     assert result == expected
 
-def test_tolerance():
+def test_min_block_size():
     str_1 = 'my favorite color is blue'
     str_2 = 'my favorite color is violet'
     result = _create_template(str_1, str_2, (0, len(str_1)), (0, len(str_2)),
-                              tolerance=0)
+                              min_block_size=1)
     expected = [None, 'my favorite color is ', None, 'l', None, 'e', None]
     assert result == expected
 
     result = _create_template(str_1, str_2, (0, len(str_1)), (0, len(str_2)),
-                              tolerance=1)
+                              min_block_size=2)
     expected = [None, 'my favorite color is ', None]
     assert result == expected

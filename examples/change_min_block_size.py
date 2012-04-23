@@ -10,14 +10,14 @@ print 'Learning from:'
 print '  ', str_1
 print '  ', str_2
 
-t = Templater() # default tolerance (0)
+t = Templater() # default min_block_size = 1
 t.learn(str_1)
 t.learn(str_2)
-print 'Template for tolerance=0:'
+print 'Template for min_block_size=1 (default):'
 print '  ', t._template
 
-t = Templater(tolerance=1)
+t = Templater(min_block_size=2)
 t.learn(str_1)
 t.learn(str_2)
-print 'Template for tolerance=1:'
+print 'Template for min_block_size=2:'
 print '  ', t._template

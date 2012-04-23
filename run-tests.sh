@@ -10,6 +10,6 @@ fi
 
 clear
 make clean build
-cp $(find build/ | grep _templater.so) .
-$VIRTUAL_ENV/bin/python /usr/local/bin/nosetests -dv \
+cp $(find build/ -name _templater.so) .
+$VIRTUAL_ENV/bin/python `which nosetests` -dv \
     --with-coverage --cover-package templater --with-yanc

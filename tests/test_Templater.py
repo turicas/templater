@@ -74,19 +74,19 @@ def test_Templater_should_import_template_string_with_marks():
 
 def test_Templater_dump_and_load_should_pickle_and_unpickle():
     processed_template = [None, '<b>', None, '</b><u>', None, '</u>', None]
-    template = Templater(template=processed_template, tolerance=5)
+    template = Templater(template=processed_template, min_block_size=6)
     template.dump('my-template.tpl')
     t2 = Templater.load('my-template.tpl')
     unlink('my-template.tpl')
     result_1 = t2._template
     expected_1 = processed_template
-    result_2 = t2._tolerance
-    expected_2 = 5
+    result_2 = t2._min_block_size
+    expected_2 = 6
     assert expected_1 == result_1
     assert expected_2 == result_2
 
-def test_Templater_should_be_able_to_adjust_tolerance():
-    t = Templater(tolerance=1)
+def test_Templater_should_be_able_to_adjust_min_block_size():
+    t = Templater(min_block_size=2)
     t.learn('git and pyth')
     t.learn('eggs and spam')
     expected = [None, ' and ', None]

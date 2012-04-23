@@ -6,9 +6,9 @@ from _templater import longest_match as lcs
 
 
 class Templater(object):
-    def __init__(self, template=None, marker='|||', tolerance=0):
+    def __init__(self, template=None, marker='|||', min_block_size=1):
         self._template = template
-        self._tolerance = tolerance
+        self._min_block_size = min_block_size
         self._marker = marker
         if type(template) in (str, unicode):
             self._template = _create_template_from_string(template, marker)
@@ -19,7 +19,7 @@ class Templater(object):
         else:
             text = '\0\0\0'.join([x for x in self._template if x is not None])
         self._template = _create_template(new_text, text, (0, len(new_text)),
-                                          (0, len(text)), self._tolerance)
+                                          (0, len(text)), self._min_block_size)
 
     def parse(self, text):
         return _parser(self._template, text)
@@ -135,21 +135,21 @@ def _parser(template, text):
     return result
 
 def _create_template(str_1, str_2, (start_1, end_1), (start_2, end_2),
-                     tolerance=0):
+                     min_block_size=1):
     lcs_size, lcs_1_start, lcs_2_start = lcs(str_1[start_1:end_1],
                                          str_2[start_2:end_2])
-    if lcs_size <= tolerance:
+    if lcs_size < min_block_size:
         return [None]
     else:
         return _create_template(str_1, str_2,
                                 (start_1, start_1 + lcs_1_start),
                                 (start_2, start_2 + lcs_2_start),
-                                tolerance) + \
+                                min_block_size) + \
                [str_1[start_1 + lcs_1_start:start_1 + lcs_1_start + lcs_size]] + \
                _create_template(str_1, str_2,
                                 (start_1 + lcs_1_start + lcs_size, end_1),
                                 (start_2 + lcs_2_start + lcs_size, end_2),
-                                tolerance)
+                                min_block_size)
 
 def _create_template_from_string(text, marker):
     tokens = [x for x in text.split(marker) if x != '']
