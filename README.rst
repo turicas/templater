@@ -84,9 +84,13 @@ template string, filling the blanks with a marker and ``dump`` saves the whole
 - ``save`` and ``open`` (raw template string filled with marker)
 - ``load`` and ``dump`` (whole object)
 
-> Note: the ``save`` method always add a leading ``\n`` to the end of file; the
-``load`` method deletes any leading ``\r\n`` or ``\n`` to the end of file (if
-there are any).
+**Note**: ``save`` always add a leading ``\n`` to the end of file; ``load``
+deletes any leading ``\r\n`` or ``\n`` to the end of file (if any).
+
+**Note-2**: when passing a pre-processed template (using ``Templater``
+initializer or ``Templater.open``) make sure it **starts and ends** with a
+marker.
+
 
 And to not be much literal, you can adjust tolerance too::
 
