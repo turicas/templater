@@ -28,9 +28,9 @@ class Templater(object):
         elements_length = len(elements)
         variables_length = self._template.count(None)
         if elements_length != variables_length:
-            error_msg = ("Wrong number of variables (passwd: {}, expected: "
+            error_msg = ("Wrong number of variables (passed: {}, expected: "
                          "{})".format(elements_length, variables_length))
-            raise ValueError(error_msg)
+            raise AttributeError(error_msg)
         text = self._template[:]
         variable_index = 0
         for index, element in enumerate(text):

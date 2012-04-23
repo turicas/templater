@@ -4,14 +4,21 @@
 from templater import _parser
 
 
-def test_parsing_one_variable():
+def test_parsing_template_with_one_blank():
+    text = '<b> testing </b>'
+    template = [None]
+    result = _parser(template, text)
+    expected = [text]
+    assert result == expected
+
+def test_parsing_template_with_three_blanks():
     text = '<b> testing </b>'
     template = [None, '<b> ', None, ' </b>', None]
     result = _parser(template, text)
     expected = ['', 'testing', '']
     assert result == expected
 
-def test_parsing_two_variables():
+def test_parsing_four_blanks():
     text = '<b> testing and programming </b>'
     template = [None, '<b> ', None, ' and ', None, ' </b>', None]
     result = _parser(template, text)
