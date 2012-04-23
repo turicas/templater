@@ -77,7 +77,7 @@ class Templater(object):
             marker = self._marker
         blanks = [marker for x in self._template if x is None]
         fp = open(filename, 'w')
-        fp.write(self.join(blanks))
+        fp.write(self.join(blanks) + '\n')
         fp.close()
 
     @staticmethod
@@ -93,9 +93,27 @@ class Templater(object):
         fp = open(filename)
         contents = fp.read()
         fp.close()
+        if contents[-2:] == '\r\n':
+            contents = contents[:-2]
+        elif contents[-1] == '\n':
+            contents = contents[:-1]
         template = _create_template_from_string(contents, marker)
         t = Templater(template=template, marker=marker)
         return t
+
+    def parse_file(self, filename):
+        """Open, read a file and call ``Templater.parse`` with its contents.
+
+        If the file ends with ``\n`` or ``\r\n``, it'll be removed.
+        """
+        fp = open(filename)
+        contents = fp.read()
+        fp.close()
+        if contents[-2:] == '\r\n':
+            contents = contents[:-2]
+        elif contents[-1] == '\n':
+            contents = contents[:-1]
+        return self.parse(contents)
 
 
 def _parser(template, text):

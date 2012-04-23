@@ -41,4 +41,3 @@ def test_parsing_first_blank():
     result = _parser(template, text)
     expected = ['blah', 'testing', 'programming', '']
     assert result == expected
-

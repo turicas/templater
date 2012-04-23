@@ -23,6 +23,23 @@ def test_parse():
     expected = ['', 'b c', '']
     assert result == expected
 
+def test_Templater_parse_file_should_open_and_parse_a_file_from_filename():
+    template = Templater('+<u>+</u>+', marker='+')
+    fp = open('test.html', 'w')
+    fp.write('testing <u> parsing </u> files\n')
+    fp.close()
+    result_1 = template.parse_file('test.html')
+    expected = ['testing ', ' parsing ', ' files']
+    unlink('test.html')
+    assert expected == result_1
+
+    fp = open('test.html', 'w')
+    fp.write('testing <u> parsing </u> files\r\n')
+    fp.close()
+    result_2 = template.parse_file('test.html')
+    unlink('test.html')
+    assert expected == result_2
+
 def test_join():
     template = Templater()
     template.learn('a b d')
@@ -55,7 +72,7 @@ def test_Templater_should_import_template_string_with_marks():
     assert result_template == [None, '<b>', None, '</b>', None]
     assert template.join(['', 'spam eggs', '']) == '<b>spam eggs</b>'
 
-def test_Templater_should_load_and_save_templates_from_and_to_files():
+def test_Templater_dump_and_load_should_pickle_and_unpickle():
     processed_template = [None, '<b>', None, '</b><u>', None, '</u>', None]
     template = Templater(template=processed_template, tolerance=5)
     template.dump('my-template.tpl')
@@ -84,10 +101,10 @@ def test_Templater_save_should_save_template_as_a_raw_file_with_markers():
     result = fp.read()
     fp.close()
     unlink('test.html')
-    expected = '|||<b>|||</b><u>|||</u>|||'
+    expected = '|||<b>|||</b><u>|||</u>|||\n'
     assert expected == result
 
-def test_Templater_open_should_load_template_from_a_raw_file_with_markers():
+def test_Templater_open_should_create_a_template_from_a_raw_file_with_markers():
     fp = open('test.html', 'w')
     fp.write('|||<b>|||</b><u>|||</u>|||')
     fp.close()
@@ -96,3 +113,21 @@ def test_Templater_open_should_load_template_from_a_raw_file_with_markers():
     result = t._template
     expected = [None, '<b>', None, '</b><u>', None, '</u>', None]
     assert expected == result
+
+def test_Templater_open_should_remove_leading_linefeed_if_there_is_some():
+    fp = open('test.html', 'w')
+    fp.write('|||<b>|||</b><u>|||</u>|||\n')
+    fp.close()
+    t = Templater.open('test.html', marker='|||')
+    unlink('test.html')
+    result_1 = t._template
+    expected = [None, '<b>', None, '</b><u>', None, '</u>', None]
+    assert expected == result_1
+
+    fp = open('test.html', 'w')
+    fp.write('|||<b>|||</b><u>|||</u>|||\r\n')
+    fp.close()
+    t = Templater.open('test.html', marker='|||')
+    unlink('test.html')
+    result_2 = t._template
+    assert expected == result_2

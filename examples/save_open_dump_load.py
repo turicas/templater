@@ -9,11 +9,12 @@ t = Templater()
 t.learn('<b>spam</b>')
 t.learn('<b>eggs</b>')
 t.learn('<b>ham</b>')
-t.save('my-little-template.html', marker='|||')
+t.save('my-little-template.html', marker='|||') # will put a `\n` in the EOF
 t.dump('my-template.tpl')
 print t.parse('<b>parsing using first template object</b>')
 
 t2 = Templater.open('my-little-template.html', marker='|||')
+# it removes `\n`/`\r\n` in the end of file before creating template definition
 print t2.parse('<b>parsing using second template object</b>')
 
 t3 = Templater.load('my-template.tpl')
