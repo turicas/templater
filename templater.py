@@ -22,6 +22,9 @@ class Templater(object):
                     _create_template_from_string(template, marker)
 
     def learn(self, new_text):
+        if self._named_markers:
+            raise NotImplementedError("Actually you can't learn in a template "
+                                      "with named markers")
         if self._template is None:
             text = new_text
         else:
@@ -119,6 +122,14 @@ class Templater(object):
         template = Templater(template=contents, marker=marker)
         return template
 
+    def add_headers(self, headers):
+        """Add/modifiy headers (names of markers) to a template."""
+        if len(headers) != self._template.count(None):
+            raise ValueError("Wrong number of headers (passed: {}, expected: "
+                             "{})".format(len(headers), self._template.count(None)))
+        self._named_markers = True
+        self._headers = headers
+
 
 def _parser(template, text):
     last_element_index = len(template) - 1
@@ -129,7 +140,7 @@ def _parser(template, text):
             if index != last_element_index:
                 new_index = text.index(template[index + 1], text_index)
             else:
-                new_index = last_element_index
+                new_index = None
             result.append(text[text_index:new_index])
             text_index = new_index
         else:

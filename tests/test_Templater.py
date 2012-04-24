@@ -223,3 +223,30 @@ def test_passing_headers_with_different_size_from_self_headers_should_raise_Attr
     else:
         unlink('test.html')
         raise 'AttributeError not raised!'
+
+def test_template_with_named_markers_should_not_be_able_to_learn():
+    t = Templater(template='{{one}}<u>{{two}}</u>{{three}}',
+                  marker=regexp_marker)
+    try:
+        t.learn('a<u>b</u>c')
+    except NotImplementedError:
+        pass
+    else:
+        print t._template
+        assert 'NotImplementedError not raised' == False
+
+def test_should_be_able_to_add_headers_to_a_template_without_named_markers():
+    t = Templater(template='|||<u>|||</u>|||', marker='|||')
+    t.add_headers(['one', 'two', 'three'])
+    result = t.parse('a<u>b</u>c')
+    expected = {'one': 'a', 'two': 'b', 'three': 'c'}
+    assert result == expected
+
+def test_add_headers_should_raise_ValueError_if_number_of_blanks_differ_from_number_of_headers():
+    t = Templater(template='|||<u>|||</u>|||', marker='|||')
+    try:
+        t.add_headers(['one', 'two', 'three', 'four'])
+    except ValueError:
+        pass
+    else:
+        assert 'ValueError not raised!' == False
