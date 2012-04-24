@@ -1,23 +1,35 @@
 Templater
 =========
 
-Given some strings, this library extracts templates from that (with the method
-``learn``). Then, you can parse other strings and extract only the "movable
-parts" of them based on the template created (with method ``parse``). You can
-also pass these "movable parts" to fill the template and have a new string with
-the same structure as others, but with data (with method ``join``).
+Introduction
+------------
 
-And you have flexibility:
+Given some strings (or files), this library extracts a common template between
+them (method ``learn``) -- some people call it "reverse templating". Having
+your template created, you can parse other strings/files using it - the
+``parse`` method will return only what changes in this file (the "blanks"). It
+does something like the opposite of what template libraries (such as
+`Jinja <http://jinja.pocoo.org/>`_) do. But for now, it only can identify
+fixed variables (it can't create ``for`` and ``if`` blocks, for example).
 
-- If you don't want/need to ``Templater`` create the template for you, you can
-  pass a pre-processed template (as a list with the tokens or as a string with
-  markers).
+If you have the template and the "blanks" you can also fill the blanks with
+the method ``join`` - it'll return a string with the template filled. There are
+some other features:
+
+- If you don't want/need to ``Templater`` (the main class) create the template
+  for you, you can pass a pre-processed template (created manually or created
+  before using ``learn`` and saved somewhere).
 - You can split the learning and parsing process, since the learning process
   generally is executed one time and takes a lot of time compared to parsing
   process. To turn this process handy, ``Templater`` has the methods ``dump``,
   ``save``, ``load`` and ``open``, so you can learn and save a template
-  definition and later load and parse how many times you want (you can also
-  load, learn more and save).
+  definition for later loading and parsing how many times you want (you can
+  also load, learn more and save).
+
+`templater <https://github.com/turicas/templater>`_ is simple to use, easy to
+learn and does the hard work for you (for example: part of the learning
+algorithm is implemented in C for performance). Do you have 5 minutes? So learn
+with the `Examples`_.
 
 
 Installation
@@ -28,9 +40,35 @@ installing it is as simple as executing::
 
     pip install templater
 
-Or you can download the latest version, extract and run::
+Or you can download the latest version and install it using ``setup.py``::
 
+    git clone https://turicas@github.com/turicas/templater.git
+    cd templater
     python setup.py build install
+
+
+Terminology
+-----------
+
+There are some definitions/concepts we should explicit here:
+
+- **Template**: the whole object (instance of ``Templater``).
+- **Document**: a string or file that have some kind of pattern. You'll use
+  documents to make a template object learn and recognize these patterns, so
+  later you can use the template object to parse a document and get only the
+  information that is not "static".
+- **Blocks**: the fixed parts of a template. Can change (in number and size)
+  when ``learn`` is run.
+- **Blanks**: also called holes or variables, blanks are the parts in a
+  template that changes between documents with the same template.
+- **Template definition**: the information stored in a template that defines it
+  (it is a Python list with a very simple grammar that describes how the
+  template is composed).
+- **Markers**: when you want to save a template, something should be put
+  between blocks to "mark" the blanks (so the template definition can be
+  reconstructed later).
+
+Doubts? Don't worry, see the `Examples`_ and you'll get it.
 
 
 Examples
@@ -39,30 +77,31 @@ Examples
 All you need to know is below (and in the ``examples`` directory)::
 
     >>> from templater import Templater
-    >>> texts_to_learn = ['<b> spam and eggs </b>', '<b> ham and spam </b>',
-                          '<b> white and black </b>']
-    >>> text_to_parse = texts_to_learn[-1]
+    >>> documents_to_learn = ['<b> spam and eggs </b>', '<b> ham and spam </b>',
+                              '<b> white and black </b>'] # list of documents
     >>> template = Templater()
-    >>> for text in texts_to_learn:
-    ...    template.learn(text)
+    >>> for document in documents_to_learn:
+    ...    template.learn(document)
     ...
 
-    >>> print 'Template created:', template._template
+    >>> print 'Template created:', template._template # template definition
     Template created: [None, '<b> ', None, ' and ', None, ' </b>', None]
 
-    >>> print 'Parsing last string:', template.parse(text_to_parse)
-    Parsing last string: ['', 'white', 'black', '']
+    >>> document_to_parse = '<b> yellow and blue </b>'
+    >>> print 'Parsing other document:', template.parse(document_to_parse)
+    Parsing other document: ['', 'yellow', 'blue', '']
 
-    >>> print 'Filling the blanks:', template.join(['', 'yellow', 'blue', ''])
-    Filling the blanks: <b> yellow and blue </b>
+    >>> print 'Filling the blanks:', template.join(['', 'red', 'orange', ''])
+    Filling the blanks: <b> red and orange </b>
 
-You can pass pre-processed templates as a list (variable places = ``None``)::
+You can pass pre-processed templates as a list (blanks are ``None``, blocks are
+strings)::
 
     >>> t2 = Templater(template=[None, 'Music: ', None, ', Band: ', None])
     >>> print t2.join(['', 'Welcome to the Jungle', 'Guns and Roses'])
     Music: Welcome to the Jungle, Band: Guns and Roses
 
-...or you can pass a string with the marker, then ``Templater`` will create the
+...or you can pass a string with markers, then ``Templater`` will create the
 list for you::
 
     >>> t3 = Templater(template='language=#,cool=#', marker='#')
@@ -84,16 +123,16 @@ template string, filling the blanks with a marker and ``dump`` saves the whole
 - ``save`` and ``open`` (raw template string filled with marker)
 - ``load`` and ``dump`` (whole object)
 
-**Note**: ``save`` always add a leading ``\n`` to the end of file; ``load``
-deletes any leading ``\r\n`` or ``\n`` to the end of file (if any).
+**Note**: ``save`` always add a ``\n`` to the end of file; ``load``
+deletes trailing ``\r\n`` or ``\n`` in the end of file (if any).
 
 **Note-2**: when passing a pre-processed template (using ``Templater``
 initializer or ``Templater.open``) make sure it **starts and ends** with a
 marker.
 
-
-And to not be much literal, you can adjust ``min_block_size`` - it's the
-minimum number of characters permitted to create a new block in template::
+If you are getting a lot of blanks you can configure the learning process: just
+adjust ``min_block_size`` - it's the minimum number of characters permitted to
+create a new block in template::
 
     >>> str_1 = 'my favorite color is blue'
     >>> str_2 = 'my favorite color is violet'
@@ -102,6 +141,9 @@ minimum number of characters permitted to create a new block in template::
     >>> t.learn(str_2)
     >>> print t._template
     [None, 'my favorite color is ', None, 'l', None, 'e', None]
+
+We don't want that ``'l'`` and ``'e'`` there, right? So::
+
     >>> t = Templater(min_block_size=2)
     >>> t.learn(str_1)
     >>> t.learn(str_2)
@@ -109,15 +151,39 @@ minimum number of characters permitted to create a new block in template::
     [None, 'my favorite color is ', None]
 
 
+Notes
+-----
+
+I really want to know if you are using this project and what is your impression
+about it. If you have new ideas of features, discovered bugs or just want to
+say "thank you, I'm using it!", please contact me at
+`alvarojusten at gmail <alvarojusten@gmail.com>`_.
+
+If you want to code some stuff,
+just `fork it on GitHub <https://github.com/turicas/templater>`_ and create a
+pull request. Some technical notes for you:
+
+- This project uses `Test-Driven Development
+  <http://en.wikipedia.org/wiki/Test-Driven_Development>`_.
+
+  - The tests are run using Python 2.7.2 on Ubuntu 11.10 amd64.
+- You can see the changes between versions in `<CHANGELOG.rst>`_.
+- This project uses `semantic versioning <http://semver.org/>`_ (thanks,
+  `Tom Preston-Werner <http://tom.preston-werner.com/>`_).
+
+
+
 Author
 ------
 
 This software is developed by
-`Álvaro Justen aka Turicas <https://github.com/turicas>`_.
+`Álvaro Justen aka Turicas <http://blog.justen.eng.br/>`_.
 
 Many thanks to `Adrian Holovaty <http://www.holovaty.com/>`_ - he created
 `templatemaker <http://templatemaker.googlecode.com>`_, the project which
-``templater`` was inspired in/forked from.
+``templater`` was inspired in/forked from - and to
+`Escola de Matemática Aplicada (Fundação Getúlio Vargas) <http://emap.fgv.br>`_
+which gives me interesting problems to solve. :-)
 
 
 License
