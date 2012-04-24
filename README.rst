@@ -67,6 +67,9 @@ There are some definitions/concepts we should explicit here:
 - **Markers**: when you want to save a template, something should be put
   between blocks to "mark" the blanks (so the template definition can be
   reconstructed later).
+- **Named marker**: a marker plus a header is called a named marker. They are
+  handy and more legible since you can access the "blanks" by names instead of
+  indexes.
 
 Doubts? Don't worry, see the `Examples`_ and you'll get it.
 
@@ -151,6 +154,41 @@ We don't want that ``'l'`` and ``'e'`` there, right? So::
     [None, 'my favorite color is ', None]
 
 
+You can also add "headers" to your template - the headers will be the name of
+your markers, so you'll have a template with named markers and ``parse`` will
+return a ``dict`` instead of ``list``. It's more legible than using list
+indices, let's see::
+
+    >>> import re
+    >>> # Let's create a regexp that cases with '{{var}}' (it'll be our marker)
+    >>> regexp_marker = re.compile(r'{{([a-zA-Z0-9_-]*)}}')
+    >>> template = Templater('{{first-var}}<b>{{second-var}}</b>{{third-var}}',
+                             marker=regexp_marker)
+    >>> # The template knows the name of each marker just using the regexp provided
+    >>> # Passing marker as regexp to specify named markers also work for Templater.open
+
+    >>> print template.parse('This <b> is </b> a test.')
+    {'second-var': ' is ', 'third-var': ' a test.', 'first-var': 'This '}
+
+    >>> # To save the template with named markers we need to provide a Python string.
+    >>> # Templater will call .format() of this string for each marker with its name
+    >>> template.save('template-with-named-markers.html', marker='--{}--')
+    >>> # Will save '--first-var--<b>--second-var--</b>--third-var--\n'
+
+And if you have a template without headers, just add to it with ``add_headers``
+method::
+
+    >>> t = Templater('+<tr><td>+</td><td>+</td></tr>+', marker='+')
+    >>> t.parse('<tr><td>hello</td><td>world</td></tr>')
+    ['', 'hello', 'world', '']
+
+    >>> t.add_headers(['before', 'first-column', 'second-column', 'after'])
+    >>> t.parse('<tr><td>hello</td><td>world</td></tr>')
+    {'after': '', 'before': '', 'first-column': 'hello', 'second-column': 'world'}
+
+**Note**: named markers have a problem: you can't run ``learn`` if you use them.
+
+
 Notes
 -----
 
@@ -167,7 +205,8 @@ pull request. Some technical notes for you:
   <http://en.wikipedia.org/wiki/Test-Driven_Development>`_.
 
   - The tests are run using Python 2.7.2 on Ubuntu 11.10 amd64.
-- You can see the changes between versions in `<CHANGELOG.rst>`_.
+- You can see the changes between versions in
+  `CHANGELOG.rst <https://github.com/turicas/templater/blob/master/CHANGELOG.rst>`_.
 - This project uses `semantic versioning <http://semver.org/>`_ (thanks,
   `Tom Preston-Werner <http://tom.preston-werner.com/>`_).
 
