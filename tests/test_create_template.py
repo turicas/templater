@@ -4,56 +4,14 @@
 from templater import _create_template
 
 
-def test_template_creation_0():
+def test_different_strings_should_return_one_blank():
     str_1 = '1'
     str_2 = '2'
     result = _create_template(str_1, str_2, (0, len(str_1)), (0, len(str_2)))
     expected = [None]
     assert result == expected
 
-def test_template_creation():
-    str_1 = 'a1'
-    str_2 = 'a2'
-    result = _create_template(str_1, str_2, (0, len(str_1)), (0, len(str_2)))
-    expected = [None, 'a', None]
-    assert result == expected
-
-def test_template_creation_2():
-    str_1 = 'ab1'
-    str_2 = 'ab2'
-    result = _create_template(str_1, str_2, (0, len(str_1)), (0, len(str_2)))
-    expected = [None, 'ab', None]
-    assert result == expected
-
-def test_template_creation_3():
-    str_1 = '1a'
-    str_2 = '2a'
-    result = _create_template(str_1, str_2, (0, len(str_1)), (0, len(str_2)))
-    expected = [None, 'a', None]
-    assert result == expected
-
-def test_template_creation_4():
-    str_1 = 'abcdef'
-    str_2 = 'qbedff'
-    result = _create_template(str_1, str_2, (0, len(str_1)), (0, len(str_2)))
-    expected = [None, 'b', None, 'd', None, 'f', None]
-    assert result == expected
-
-def test_template_creation_5():
-    str_1 = 'abcccc'
-    str_2 = 'abe'
-    result = _create_template(str_1, str_2, (0, len(str_1)), (0, len(str_2)))
-    expected = [None, 'ab', None]
-    assert result == expected
-
-def test_template_creation_6():
-    str_1 = 'ccccab'
-    str_2 = 'eab'
-    result = _create_template(str_1, str_2, (0, len(str_1)), (0, len(str_2)))
-    expected = [None, 'ab', None]
-    assert result == expected
-
-def test_equal_strings_should_return_one_element():
+def test_equal_strings_should_return_one_block():
     str_1 = '<b> asd </b>'
     str_2 = '<b> asd </b>'
     result = _create_template(str_1, str_2, (0, len(str_1)), (0, len(str_2)))
@@ -61,11 +19,23 @@ def test_equal_strings_should_return_one_element():
     assert result == expected
 
 def test_different_strings_with_same_size():
+    str_1 = 'a1'
+    str_2 = 'a2'
+    result_1 = _create_template(str_1, str_2, (0, len(str_1)), (0, len(str_2)))
+    expected_1 = [None, 'a', None]
+    assert result_1 == expected_1
+
+    str_1 = '1a'
+    str_2 = '2a'
+    result_2 = _create_template(str_1, str_2, (0, len(str_1)), (0, len(str_2)))
+    expected_2 = [None, 'a', None]
+    assert result_2 == expected_2
+
     str_1 = '<b> asd </b>'
     str_2 = '<b> qwe </b>'
-    result = _create_template(str_1, str_2, (0, len(str_1)), (0, len(str_2)))
-    expected = [None, '<b> ', None, ' </b>', None]
-    assert result == expected
+    result_3 = _create_template(str_1, str_2, (0, len(str_1)), (0, len(str_2)))
+    expected_3 = [None, '<b> ', None, ' </b>', None]
+    assert result_3 == expected_3
 
 def test_different_strings_with_different_size():
     str_1 = '<b> asd </b>'
@@ -95,15 +65,15 @@ def test_more_than_one_variable_with_different_sizes():
     expected = [None, '<b> ', None, ' </b><u> ', None, ' </u>', None]
     assert result == expected
 
-def test_tolerance():
+def test_min_block_size():
     str_1 = 'my favorite color is blue'
     str_2 = 'my favorite color is violet'
     result = _create_template(str_1, str_2, (0, len(str_1)), (0, len(str_2)),
-                              tolerance=0)
+                              min_block_size=1)
     expected = [None, 'my favorite color is ', None, 'l', None, 'e', None]
     assert result == expected
 
     result = _create_template(str_1, str_2, (0, len(str_1)), (0, len(str_2)),
-                              tolerance=1)
+                              min_block_size=2)
     expected = [None, 'my favorite color is ', None]
     assert result == expected

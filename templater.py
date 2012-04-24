@@ -11,9 +11,9 @@ MARKER = '|||'
 NAMED_MARKER = '{{{{{}}}}}' # '{{sample-var}}'
 
 class Templater(object):
-    def __init__(self, template=None, marker=MARKER, tolerance=0):
+    def __init__(self, template=None, marker='|||', min_block_size=1):
         self._template = template
-        self._tolerance = tolerance
+        self._min_block_size = min_block_size
         self._marker = marker
         self._headers = None
         self._named_markers = False
@@ -30,7 +30,7 @@ class Templater(object):
         else:
             text = '\0\0\0'.join(filter(lambda x: x is not None, self._template))
         self._template = _create_template(new_text, text, (0, len(new_text)),
-                                          (0, len(text)), self._tolerance)
+                                          (0, len(text)), self._min_block_size)
 
     def parse(self, text):
         result = _parser(self._template, text)
@@ -45,7 +45,7 @@ class Templater(object):
         if elements_length != variables_length:
             error_msg = ("Wrong number of variables (passed: {}, expected: "
                          "{})".format(elements_length, variables_length))
-            raise ValueError(error_msg)
+            raise AttributeError(error_msg)
         text = self._template[:]
         variable_index = 0
         for index, element in enumerate(text):
@@ -103,7 +103,7 @@ class Templater(object):
                 headers = self._headers
             blanks = [marker.format(header) for header in headers]
         fp = open(filename, 'w')
-        fp.write(self.join(blanks))
+        fp.write(self.join(blanks) + '\n')
         fp.close()
 
     @staticmethod
@@ -119,6 +119,10 @@ class Templater(object):
         fp = open(filename)
         contents = fp.read()
         fp.close()
+        if contents[-2:] == '\r\n':
+            contents = contents[:-2]
+        elif contents[-1] == '\n':
+            contents = contents[:-1]
         template = Templater(template=contents, marker=marker)
         return template
 
@@ -130,11 +134,25 @@ class Templater(object):
         self._named_markers = True
         self._headers = headers
 
+    def parse_file(self, filename):
+        """Open, read a file and call ``Templater.parse`` with its contents.
+
+        If the file ends with ``\n`` or ``\r\n``, it'll be removed.
+        """
+        fp = open(filename)
+        contents = fp.read()
+        fp.close()
+        if contents[-2:] == '\r\n':
+            contents = contents[:-2]
+        elif contents[-1] == '\n':
+            contents = contents[:-1]
+        return self.parse(contents)
+
 
 def _parser(template, text):
-    last_element_index = len(template) - 1
     result = []
     text_index = 0
+    last_element_index = len(template) - 1
     for index, element in enumerate(template):
         if element is None:
             if index != last_element_index:
@@ -150,22 +168,22 @@ def _parser(template, text):
     return result
 
 def _create_template(str_1, str_2, (start_1, end_1), (start_2, end_2),
-                     tolerance=0):
+                     min_block_size=1):
     lcs_size, lcs_1_start, lcs_2_start = lcs(str_1[start_1:end_1],
                                          str_2[start_2:end_2])
-    if lcs_size <= tolerance:
+    if lcs_size < min_block_size:
         return [None]
     else:
         common = str_1[start_1 + lcs_1_start:start_1 + lcs_1_start + lcs_size]
         return _create_template(str_1, str_2,
                                 (start_1, start_1 + lcs_1_start),
                                 (start_2, start_2 + lcs_2_start),
-                                tolerance) + \
-               [common] + \
+                                min_block_size) + \
+               [str_1[start_1 + lcs_1_start:start_1 + lcs_1_start + lcs_size]] + \
                _create_template(str_1, str_2,
                                 (start_1 + lcs_1_start + lcs_size, end_1),
                                 (start_2 + lcs_2_start + lcs_size, end_2),
-                                tolerance)
+                                min_block_size)
 
 def _create_template_from_string(text, marker):
     named_markers = type(marker) == type_regexp
