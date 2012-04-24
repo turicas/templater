@@ -2,27 +2,42 @@
 # coding: utf-8
 
 from cPickle import dump as pickle_dump, load as pickle_load
+from re import compile as re_compile
 from _templater import longest_match as lcs
 
+
+type_regexp = type(re_compile(''))
+MARKER = '|||'
+NAMED_MARKER = '{{{{{}}}}}' # '{{sample-var}}'
 
 class Templater(object):
     def __init__(self, template=None, marker='|||', min_block_size=1):
         self._template = template
         self._min_block_size = min_block_size
         self._marker = marker
+        self._headers = None
+        self._named_markers = False
         if type(template) in (str, unicode):
-            self._template = _create_template_from_string(template, marker)
+            self._template, self._named_markers, self._headers = \
+                    _create_template_from_string(template, marker)
 
     def learn(self, new_text):
+        if self._named_markers:
+            raise NotImplementedError("Actually you can't learn in a template "
+                                      "with named markers")
         if self._template is None:
             text = new_text
         else:
-            text = '\0\0\0'.join([x for x in self._template if x is not None])
+            text = '\0\0\0'.join(filter(lambda x: x is not None, self._template))
         self._template = _create_template(new_text, text, (0, len(new_text)),
                                           (0, len(text)), self._min_block_size)
 
     def parse(self, text):
-        return _parser(self._template, text)
+        result = _parser(self._template, text)
+        if self._named_markers:
+            return dict(zip(self._headers, result))
+        else:
+            return result
 
     def join(self, elements):
         elements_length = len(elements)
@@ -64,7 +79,7 @@ class Templater(object):
         fp.close()
         return processed_template
 
-    def save(self, filename, marker=None):
+    def save(self, filename, marker=None, headers=None):
         """Save the template to ``filename`` using ``marker`` as marker.
 
         This method looks like ``Templater.dump``, the difference is that it
@@ -73,15 +88,26 @@ class Templater(object):
         resulting string to ``filename``.
         It should be used in pair with ``Templater.open``.
         """
-        if marker is None:
-            marker = self._marker
-        blanks = [marker for x in self._template if x is None]
+        if not self._named_markers:
+            if marker is None:
+                marker = self._marker
+            blanks = [marker] * self._template.count(None)
+        else:
+            if headers is not None and len(headers) != len(self._headers):
+                raise AttributeError('Incorrect number of headers (passed:'
+                                     ' {}, expected: {})'.format(
+                                     len(headers), len(self._headers)))
+            if marker is None:
+                marker = NAMED_MARKER
+            if headers is None:
+                headers = self._headers
+            blanks = [marker.format(header) for header in headers]
         fp = open(filename, 'w')
         fp.write(self.join(blanks) + '\n')
         fp.close()
 
     @staticmethod
-    def open(filename, marker='|||'):
+    def open(filename, marker=MARKER):
         """Open ``filename``, split in ``marker``, return ``Templater`` object.
 
         You should use this method in pair with ``Templater.save`` or if you
@@ -97,9 +123,16 @@ class Templater(object):
             contents = contents[:-2]
         elif contents[-1] == '\n':
             contents = contents[:-1]
-        template = _create_template_from_string(contents, marker)
-        t = Templater(template=template, marker=marker)
-        return t
+        template = Templater(template=contents, marker=marker)
+        return template
+
+    def add_headers(self, headers):
+        """Add/modifiy headers (names of markers) to a template."""
+        if len(headers) != self._template.count(None):
+            raise ValueError("Wrong number of headers (passed: {}, expected: "
+                             "{})".format(len(headers), self._template.count(None)))
+        self._named_markers = True
+        self._headers = headers
 
     def parse_file(self, filename):
         """Open, read a file and call ``Templater.parse`` with its contents.
@@ -141,6 +174,7 @@ def _create_template(str_1, str_2, (start_1, end_1), (start_2, end_2),
     if lcs_size < min_block_size:
         return [None]
     else:
+        common = str_1[start_1 + lcs_1_start:start_1 + lcs_1_start + lcs_size]
         return _create_template(str_1, str_2,
                                 (start_1, start_1 + lcs_1_start),
                                 (start_2, start_2 + lcs_2_start),
@@ -152,5 +186,16 @@ def _create_template(str_1, str_2, (start_1, end_1), (start_2, end_2),
                                 min_block_size)
 
 def _create_template_from_string(text, marker):
-    tokens = [x for x in text.split(marker) if x != '']
-    return list(sum(zip([None] * len(tokens), tokens), ())) + [None]
+    named_markers = type(marker) == type_regexp
+    if named_markers:
+        results = marker.split(text)
+        tokens, headers = [x for x in results[::2] if x], results[1::2]
+    else:
+        tokens = [x for x in text.split(marker) if x != '']
+    template = list(sum(zip([None] * len(tokens), tokens), ())) + [None]
+    if named_markers:
+        if template.count(None) != len(headers):
+            raise ValueError("Template error! Verify if markers are separated"
+                             " at least by one character")
+        return template, True, headers
+    return template, False, None
