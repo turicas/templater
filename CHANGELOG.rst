@@ -1,10 +1,12 @@
 Changelog
 =========
 
-Next Release
-------------
+Version 0.4.0
+-------------
 
-- Released at: (not released yet).
+- Released at: 2012-04-24 15:07:58.
+- `New feature <https://github.com/turicas/templater/issues/5>`_: named markers
+  (new method ``add_headers``).
 - `Bug fixed <https://github.com/turicas/templater/issues/7>`_: last blank
   wasn't being filled.
 - `Bug fixed <https://github.com/turicas/templater/issues/6>`_: ignoring
